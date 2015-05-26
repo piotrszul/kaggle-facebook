@@ -1,0 +1,1 @@
+create table bid (bid_id INTEGER NOT NULL PRIMARY KEY,bidder_id VARCHAR(64) NOT NULL,auction VARCHAR(64),merchandise VARCHAR(64),device VARCHAR(64),time INTEGER,country VARCHAR(10),ip VARCHAR(64),url VARCHAR(64));
