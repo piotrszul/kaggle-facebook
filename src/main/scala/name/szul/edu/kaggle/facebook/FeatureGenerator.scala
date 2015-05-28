@@ -27,7 +27,7 @@ object FeatureGenerator {
         
         val features:List[Iterable[FeatureProvider]] = List(
             dims.map(new HiveSQLFeatureProviderWithParam("total",
-                "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id;",_)),
+                "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
             Some(new HiveSQLFeatureProvider("total_bids",
                 "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))
         )
