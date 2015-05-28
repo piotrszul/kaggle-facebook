@@ -20,7 +20,7 @@ object FeatureGenerator {
  
         val sc: SparkContext = new SparkContext(new SparkConf().setAppName("Generator"));
         implicit val hc:HiveContext = new HiveContext(sc)
-        store.save(new HiveSQLFeatureProvider("bid_count","SELECT bidder_id,count(*) FROM bid GROUP BY bidder_id"))
+        store.save(new HiveSQLFeatureProvider("total_bids","SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))
   }
   
   
