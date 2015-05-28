@@ -11,7 +11,7 @@ class HiveSQLFeatureProviderWithParam(baseName:String, query:String, param:Strin
   def compute:Iterable[Tuple2[String,Long]] = {
     //new 
     hc.sql(String.format(query,param)
-        ).map({r => println(r); (r(1).toString(), r.getLong(2))}).collect().toList
+        ).map({r => println(r); (r(0).toString(), r.getLong(1))}).collect().toList
   }
 
 }
