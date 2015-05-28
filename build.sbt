@@ -16,6 +16,8 @@ libraryDependencies += "org.apache.spark" % "spark-sql_2.10" % "1.2.1" withSourc
 
 libraryDependencies += "org.apache.spark" % "spark-hive_2.10" % "1.2.1" withSources()
 
+libraryDependencies += "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
+
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
 // Invocation exception if we try to run the tests in parallel
