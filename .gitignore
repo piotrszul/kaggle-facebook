@@ -1,1 +1,9 @@
 data
+.svn
+.project
+.classpath
+.cache
+.settings
+target
+project/project
+project/target
