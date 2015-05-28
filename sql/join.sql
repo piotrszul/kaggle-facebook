@@ -1,0 +1,1 @@
+select bidder.bidder_id,total_bid.value as total_bid,other.value as other,bidder.outcome FROM bidder JOIN feature_long as total_bid USING(bidder_id) JOIN feature_long as other USING(bidder_id)  WHERE total_bid.feature_id = 8 AND other.feature_id = 8;
