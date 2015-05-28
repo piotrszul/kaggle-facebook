@@ -4,6 +4,7 @@ import javax.sql.DataSource
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import scala.collection.mutable.MutableList
 
 class JDBCStorage(val ds:DataSource) {
 
@@ -105,5 +106,27 @@ class JDBCStorage(val ds:DataSource) {
     }
   }
   
+  def buildJoing(features:List[Tuple2[Long,String]]):String  = {
+      val select = features.map {case (id,key) => s"${key}.value as ${key}"} mkString(",")
+      val join = features.map {case (id,key) => s"JOIN feature_long as ${key} USING(feature_id)"} mkString(" ")    
+      val where = features.map {case (id,key) => s"${key}.feature_id = ${id}"} mkString(" AND ")
+      s"SELECT bidder.bidder_id, bidder.outcome, ${select} FORM bidder ${join} WHERE ${where}"    
+  }
+  
+  def createView() = {
+    doWithConnection {conn =>
+      doWithStmt(conn)(_.prepareStatement("DROP VIEW data IF EXIST"))(_.execute())
+      val features = queryWithStmt(conn)(_.prepareStatement("SELECT feature_id, key FROM feature")) { rs =>
+        val result = new MutableList[Tuple2[Long,String]]();
+        while(rs.next()) {
+          result+=((rs.getLong(1), rs.getString(2)))
+        }
+        result.toList
+      }
+      val constructViewQuery = "CREATE MATERIALIZED VIEW data AS " + buildJoing(features);
+      doWithStmt(conn)(_.prepareStatement(constructViewQuery))(_.execute());
+      // construct this query
+    }
+  }
   
 }

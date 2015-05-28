@@ -6,6 +6,8 @@ import org.apache.spark.sql.hive.HiveContext
 
 object FeatureGenerator {
 
+  val dims = List("country","device","auction")
+  
   def main(args:Array[String]) = {
     
 
@@ -17,10 +19,20 @@ object FeatureGenerator {
     
         println("Hello World")  
         val store = new JDBCStorage(ds)
- 
+        
+       // println(store.buildJoing(List((1L,"count"),(2L,"dev"),(3L,"xxx"))))
+
         val sc: SparkContext = new SparkContext(new SparkConf().setAppName("Generator"));
-        implicit val hc:HiveContext = new HiveContext(sc)
-        store.save(new HiveSQLFeatureProvider("total_bids","SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))
+        implicit val hc:HiveContext = new HiveContext(sc)        
+        
+        val features:List[Iterable[FeatureProvider]] = List(
+            dims.map(new HiveSQLFeatureProviderWithParam("total",
+                "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id;",_)),
+            Some(new HiveSQLFeatureProvider("total_bids",
+                "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))
+        )
+        features.flatten.foreach {store.save(_)}
+        
   }
   
   

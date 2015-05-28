@@ -9,8 +9,7 @@ class HiveSQLFeatureProvider(_name:String, query:String)(implicit hc:HiveContext
   
   @Override
   def compute:Iterable[Tuple2[String,Long]] = {
-    println("Running HQL: " + query)
-    hc.sql(query).map({r => println(r); (r(0).toString(), r.getLong(1))}).collect().toList
+    hc.sql(query).map({r => println(r); (r(1).toString(), r.getLong(2))}).collect().toList
   }
 
 }
