@@ -16,5 +16,7 @@ object Tests {
      val feat = Feature(3)
      println(feat.hashCode())
      //685445846
+     
+     println(String.format("One: %1$s and afain %1$s", "first"))
   }
 }
