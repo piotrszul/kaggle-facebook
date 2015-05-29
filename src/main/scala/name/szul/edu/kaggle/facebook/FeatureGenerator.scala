@@ -6,7 +6,7 @@ import org.apache.spark.sql.hive.HiveContext
 
 object FeatureGenerator {
 
-  val dims = List("country","device","auction")
+  val dims = List("country","device","auction", "merchandise", "ip", "url")
   
   def main(args:Array[String]) = {
     

@@ -137,7 +137,7 @@ class JDBCStorage(val ds:DataSource) {
   def createView() = {
     doWithConnection {conn =>
       doWithStmt(conn)(_.prepareStatement("DROP MATERIALIZED VIEW  IF EXISTS data "))(_.execute())
-      val features = queryWithStmt(conn)(_.prepareStatement("SELECT feature_id, key FROM feature")) { rs =>
+      val features = queryWithStmt(conn)(_.prepareStatement("SELECT feature_id, key, type, 0 FROM feature")) { rs =>
         val result = new MutableList[Feature]();
         while(rs.next()) {
           result+=Feature.fromRs(rs);
