@@ -29,7 +29,7 @@ object FeatureGenerator {
             dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
             dims.map(new HiveSQLFeatureProviderWithParam[Double]("per_auction_avg",
-                "SELECT bidder_id,AVG(cnt),FROM (SELECT bidder_id,auction,COUNT(DISTINCT %s) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id",_)),
+                "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(DISTINCT %s) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id",_)),
             Some(new HiveSQLFeatureProviderWithParam[Double]("per_auction_avg_bid",
                 "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id","")),
             Some(new HiveSQLFeatureProvider("total_bid",
