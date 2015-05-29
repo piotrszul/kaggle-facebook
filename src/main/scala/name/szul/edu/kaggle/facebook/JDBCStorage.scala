@@ -107,15 +107,15 @@ class JDBCStorage(val ds:DataSource) {
   }
   
   def buildJoing(features:List[Tuple2[Long,String]]):String  = {
-      val select = features.map {case (id,key) => s"${key}.value as ${key}"} mkString(",")
-      val join = features.map {case (id,key) => s"JOIN feature_long as ${key} USING(bidder_id)"} mkString(" ")    
+      val select = features.map {case (id,key) => s"COALESCE(${key}.value,0) as ${key}"} mkString(",")
+      val join = features.map {case (id,key) => s"LEFT OUTER JOIN feature_long as ${key} ON bidder.bidder_id = ${key}.bidder_id AND ${key}.feature_id = ${id}"} mkString(" ")    
       val where = features.map {case (id,key) => s"${key}.feature_id = ${id}"} mkString(" AND ")
-      s"SELECT bidder.bidder_id, bidder.outcome, ${select} FROM bidder ${join} WHERE ${where}"    
+      s"SELECT bidder.bidder_id, bidder.outcome, ${select} FROM bidder ${join}"    
   }
   
   def createView() = {
     doWithConnection {conn =>
-      doWithStmt(conn)(_.prepareStatement("DROP VIEW  IF EXISTS data "))(_.execute())
+      doWithStmt(conn)(_.prepareStatement("DROP MATERIALIZED VIEW  IF EXISTS data "))(_.execute())
       val features = queryWithStmt(conn)(_.prepareStatement("SELECT feature_id, key FROM feature")) { rs =>
         val result = new MutableList[Tuple2[Long,String]]();
         while(rs.next()) {
