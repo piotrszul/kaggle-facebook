@@ -2,7 +2,7 @@ package name.szul.edu.kaggle.facebook
 
 import org.apache.spark.sql.hive.HiveContext
 
-class HiveSQLFeatureProvider(_name:String, query:String)(implicit hc:HiveContext) extends FeatureProvider {
+case class HiveSQLFeatureProvider(_name:String, query:String, version:Int = 1)(implicit hc:HiveContext) extends FeatureProvider[Long] {
   
   @Override
   val name = _name;  

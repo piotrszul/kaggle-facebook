@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.hive.HiveContext
 
-object FeatureGenerator {
+object Try {
 
   val dims = List("country","device","auction")
   
@@ -19,22 +19,18 @@ object FeatureGenerator {
     
         println("Hello World")  
         val store = new JDBCStorage(ds)
+        store.printInfo(new TestFeatureProvider())   
         
-       // println(store.buildJoing(List((1L,"count"),(2L,"dev"),(3L,"xxx"))))
-
-        val sc: SparkContext = new SparkContext(new SparkConf().setAppName("Generator"));
+        val sc: SparkContext = new SparkContext(new SparkConf().setAppName("Generator").setMaster("local"));
         implicit val hc:HiveContext = new HiveContext(sc)        
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
-            dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
+            dims.map(new HiveSQLFeatureProviderWithParam("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
-            dims.map(new HiveSQLFeatureProviderWithParam[Double]("total",
-                "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id",_)),
             Some(new HiveSQLFeatureProvider("total_bids",
                 "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))
         )
-        features.flatten.foreach {store.save(_)}
-        
+        features.flatten.foreach {store.printInfo(_)}
   }
   
   

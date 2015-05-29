@@ -1,6 +1,6 @@
 package name.szul.edu.kaggle.facebook
 
-class TestFeatureProvider extends FeatureProvider {
+class TestFeatureProvider extends FeatureProvider[Long] {
 
   @Override
   val name = "test_feature"

@@ -5,6 +5,20 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import scala.collection.mutable.MutableList
+import scala.reflect.ClassTag
+
+case class Feature(val id:Long, val key:String, val typeName:String, val hash:Long)
+
+object Feature {
+  def fromNextRs(rs:ResultSet):Option[Feature] = {
+    if (rs.next()) Some(fromRs(rs)) else None
+  }
+
+  def fromRs(rs:ResultSet):Feature = {
+    Feature(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getLong(4))
+  }
+}
+
 
 class JDBCStorage(val ds:DataSource) {
 
@@ -71,33 +85,40 @@ class JDBCStorage(val ds:DataSource) {
   }
   
   def returnLong(rs:ResultSet):Option[Long] = if (rs.next()) Some(rs.getLong(1)) else None
+
+  def printInfo(fp: FeatureProvider[_]) = {
+    
+    println("name: " + fp.name)
+    println("type: " + fp.typeName)
+    
+  }
   
-  def save(fp: FeatureProvider) = {
+  def save[T](fp: FeatureProvider[T])(implicit tag:ClassTag[T]) = {
     
     println("Hello !!!!!")
     doWithConnection { 
       doInTransaction { conn =>
         
         println("In TX:")
-        val id:Long = queryWithStmtCust(conn)(
-            _.prepareStatement("SELECT feature_id FROM feature WHERE key=?"))(_.setString(1,fp.name))(returnLong _).orElse {
+        val f:Feature = queryWithStmtCust(conn)(
+            _.prepareStatement("SELECT feature_id,key,type,0 FROM feature WHERE key=?"))(_.setString(1,fp.name))(Feature.fromNextRs _).orElse {
           queryWithStmtCust(conn)(
-            _.prepareStatement("INSERT INTO feature(key) VALUES(?) RETURNING feature_id"))(_.setString(1,fp.name))(returnLong _)
+            _.prepareStatement("INSERT INTO feature(key) VALUES(?) RETURNING feature_id,key,type,0"))(_.setString(1,fp.name))(Feature.fromNextRs _)
         }.get
 
-        System.out.println("ID: " + id)
-        doWithStmt(conn)(_.prepareStatement("DELETE FROM feature_long WHERE feature_id=?")) { stmt =>
-           stmt.setLong(1,id)
+        System.out.println("ID: " + f.id)
+        doWithStmt(conn)(_.prepareStatement("DELETE FROM feature_" + fp.typeName + " WHERE feature_id=?")) { stmt =>
+           stmt.setLong(1,f.id)
            stmt.executeUpdate()
         }
         
         
-        doWithStmt(conn)(_.prepareStatement("INSERT INTO feature_long(feature_id,bidder_id,value) VALUES(?,?,?)")) {
+        doWithStmt(conn)(_.prepareStatement("INSERT INTO feature_" + fp.typeName + "(feature_id,bidder_id,value) VALUES(?,?,?)")) {
           stmt =>
             fp.compute.foreach { t =>
-              stmt.setLong(1, id)
+              stmt.setLong(1, f.id)
               stmt.setString(2,t._1)
-              stmt.setLong(3,t._2)
+              stmt.setObject(3,t._2)
               stmt.addBatch()
             }
             stmt.executeBatch()
@@ -106,10 +127,10 @@ class JDBCStorage(val ds:DataSource) {
     }
   }
   
-  def buildJoing(features:List[Tuple2[Long,String]]):String  = {
-      val select = features.map {case (id,key) => s"COALESCE(${key}.value,0) as ${key}"} mkString(",")
-      val join = features.map {case (id,key) => s"LEFT OUTER JOIN feature_long as ${key} ON bidder.bidder_id = ${key}.bidder_id AND ${key}.feature_id = ${id}"} mkString(" ")    
-      val where = features.map {case (id,key) => s"${key}.feature_id = ${id}"} mkString(" AND ")
+  def buildJoing(features:List[Feature]):String  = {
+      val select = features.map {f => s"COALESCE(${f.key}.value,0) as ${f.key}"} mkString(",")
+      val join = features.map {f => s"LEFT OUTER JOIN feature_${f.typeName} as ${f.key} ON bidder.bidder_id = ${f.key}.bidder_id AND ${f.key}.feature_id = ${f.id}"} mkString(" ")    
+      val where = features.map {f => s"${f.key}.feature_id = ${f.id}"} mkString(" AND ")
       s"SELECT bidder.bidder_id, bidder.outcome, ${select} FROM bidder ${join}"    
   }
   
@@ -117,9 +138,9 @@ class JDBCStorage(val ds:DataSource) {
     doWithConnection {conn =>
       doWithStmt(conn)(_.prepareStatement("DROP MATERIALIZED VIEW  IF EXISTS data "))(_.execute())
       val features = queryWithStmt(conn)(_.prepareStatement("SELECT feature_id, key FROM feature")) { rs =>
-        val result = new MutableList[Tuple2[Long,String]]();
+        val result = new MutableList[Feature]();
         while(rs.next()) {
-          result+=((rs.getLong(1), rs.getString(2)))
+          result+=Feature.fromRs(rs);
         }
         result.toList
       }
