@@ -48,7 +48,7 @@ model$timestamp <-Sys.time()
 bestTune <- model$results[order(as.numeric(row.names(model$result)))[as.numeric(row.names(model$bestTune))],]
 print("Best:")
 bestTune
-estAUC<-bestTune[length(bestTune-2)]
+estAUC<-bestTune[length(bestTune)-1]
 printf("Estimated AUD %f" , estAUC)
 predTrain <- predict(model, newdata=train_data,type="prob")
 resultTrain <- data.frame(bidder_id=train_data$bidder_id,prediction=predTrain$c_1)
