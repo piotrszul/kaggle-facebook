@@ -27,6 +27,8 @@ multiLogLoss <-function (data, lev = NULL, model = NULL) {
     c(ROC=ro$auc)
 }
 
+tuningGrid <- expand.grid(n.trees = c(500,1000), interaction.depth = c(1,3,6,9), shrinkage = c(0.1, 0.05, 0.01))
+
 trControl <- trainControl(method="cv",
                           number=10,
                           verboseIter=TRUE,
@@ -35,13 +37,11 @@ trControl <- trainControl(method="cv",
                           allowParallel = FALSE)
 
 model <- train(class ~ ., data = train_set, 
-                 method="rf",
-                 ntree=500,
-                 importance = FALSE,
+                 method="gbm",
                  trControl = trControl,
                  metric = "ROC",
                  maximize = TRUE, 
-                 tuneLength = 5
+                 tuneGrid = tuningGrid
 )
 
 model$timestamp <-Sys.time()
