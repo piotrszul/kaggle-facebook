@@ -54,7 +54,7 @@ object FeatureGenerator {
             // time related features
             List("10", "100").map(new HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
                 "SELECT bidder_id,AVG(cnt) FROM"  + 
-                " (SELECT bidder_id,TIMEBIN(time, %s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,grp) as tmp  GROUP BY bidder_id",_)),     
+                " (SELECT bidder_id,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as tmp  GROUP BY bidder_id",_)),     
             // different    
             dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
