@@ -56,7 +56,7 @@ object FeatureGenerator {
             List("10","100","500").flatMap(
               HiveSQLDistSummaryWithParam[Double]("bids_per_bin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", _).expand), 
             List("10","100","500").flatMap(
-              HiveSQLDistSummaryWithParam[Double]("bids_per_active", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s) HAVING count(*) > 0", _).expand), 
+              HiveSQLDistSummaryWithParam[Double]("bids_per_active", "SELECT * FROM (SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as xx WHERE cnt >0", _).expand), 
             //List("10", "100").map(HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
             //    "SELECT bidder_id,AVG(cnt) FROM"  + 
             //    " (SELECT bidder_id,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as tmp  GROUP BY bidder_id",_)),     
