@@ -23,9 +23,9 @@ object FeatureGenerator {
   val sessionUnits = 13642L
   
   def retime(time:Long):Long = {
-    val scaledTime = time/1000000000L - 9631917L
+    val scaledTime = Math.round(time/1000000000.0) - 9631917L
     val day = scaledTime/dayUnits
-    val timeInDay = scaledTime/dayUnits
+    val timeInDay = scaledTime%dayUnits
     day * sessionUnits + timeInDay
   }
   
