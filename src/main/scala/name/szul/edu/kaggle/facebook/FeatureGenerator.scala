@@ -52,6 +52,10 @@ object FeatureGenerator {
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
             // time related features
+            
+            HiveSQLDistSummaryWithParam[Double]("bids_per_bin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", "10").expand, 
+            
+            
             List("10", "100").map(HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
                 "SELECT bidder_id,AVG(cnt) FROM"  + 
                 " (SELECT bidder_id,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as tmp  GROUP BY bidder_id",_)),     

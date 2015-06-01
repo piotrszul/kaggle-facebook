@@ -29,6 +29,9 @@ object Try {
         implicit val hc:HiveContext = new HiveContext(sc)        
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
+            
+            HiveSQLDistSummaryWithParam[Double]("per_bid_stats", "SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id", "country").expand,
+            
             dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
             Some(new HiveSQLFeatureProvider("total_bids",
