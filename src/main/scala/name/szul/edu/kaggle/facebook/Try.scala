@@ -30,7 +30,8 @@ object Try {
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
             
-            HiveSQLDistSummaryWithParam[Double]("per_bid_stats", "SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id", "country").expand,
+            List("10","100","500").flatMap(
+            HiveSQLDistSummaryWithParam[Double]("bids_per_bin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", _).expand),
             
             dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
