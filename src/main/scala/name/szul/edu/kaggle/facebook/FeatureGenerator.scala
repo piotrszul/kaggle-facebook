@@ -52,17 +52,17 @@ object FeatureGenerator {
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
             // time related features
-            List("10", "100").map(new HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
+            List("10", "100").map(HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
                 "SELECT bidder_id,AVG(cnt) FROM"  + 
                 " (SELECT bidder_id,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as tmp  GROUP BY bidder_id",_)),     
             // different    
-            dims.map(new HiveSQLFeatureProviderWithParam[Long]("total",
+            dims.map(HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
-            dims.map(new HiveSQLFeatureProviderWithParam[Double]("per_auction_avg",
+            dims.map(HiveSQLFeatureProviderWithParam[Double]("per_auction_avg",
                 "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(DISTINCT %s) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id",_)),
-            Some(new HiveSQLFeatureProviderWithParam[Double]("per_auction_avg_bid",
+            Some(HiveSQLFeatureProviderWithParam[Double]("per_auction_avg_bid",
                 "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id","")),
-            Some(new HiveSQLFeatureProvider("total_bid",
+            Some(HiveSQLFeatureProvider("total_bid",
                 "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))                
         )
         features.flatten.foreach {store.save(_)}
