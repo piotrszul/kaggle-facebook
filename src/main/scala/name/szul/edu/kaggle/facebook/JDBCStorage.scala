@@ -103,7 +103,7 @@ class JDBCStorage(val ds:DataSource) {
         val f:Feature = queryWithStmtCust(conn)(
             _.prepareStatement("SELECT feature_id,key,type,hash FROM feature WHERE key=?"))(_.setString(1,fp.name))(Feature.fromNextRs _).orElse {
           queryWithStmtCust(conn)(
-            _.prepareStatement("INSERT INTO feature(key,type,hash) VALUES(?,?,?) RETURNING feature_id,key,type,0"))({rs => rs.setString(1,fp.name); rs.setString(2,fp.typeName)})(Feature.fromNextRs _)
+            _.prepareStatement("INSERT INTO feature(key,type,hash) VALUES(?,?,0) RETURNING feature_id,key,type,hash"))({rs => rs.setString(1,fp.name); rs.setString(2,fp.typeName)})(Feature.fromNextRs _)
         }.get
 
         
