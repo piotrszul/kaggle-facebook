@@ -12,7 +12,9 @@ class HiveSQLFeatureProviderWithParam[T](baseName:String, query:String, param:St
   @Override
   def compute:Iterable[Tuple2[String,T]] = {
     //new 
-    hc.sql(String.format(query,param)
+    val actualQuery = String.format(query,param)
+    println("Evaluating: "  + name  + " with: " + actualQuery)
+    hc.sql(actualQuery
         ).map({r => println(r); (r(0).toString(),r.getAs(1)) }).collect().toList
   }
 
