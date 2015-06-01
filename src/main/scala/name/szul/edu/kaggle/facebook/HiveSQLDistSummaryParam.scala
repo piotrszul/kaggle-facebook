@@ -19,7 +19,7 @@ case class HiveSQLDistSummaryWithParam[T](baseName:String, query:String, param:S
   }
   
   
-  case class  SummaryStat[T](index:Int, statName:String, version:Int=1)(implicit val stag:ClassTag[T]) extends FeatureProvider[T] {
+  case class  SummaryStat[T](index:Int, statName:String,parent: HiveSQLDistSummaryWithParam[T],version:Int=1)(implicit val stag:ClassTag[T]) extends FeatureProvider[T] {
 
     @Override 
     val name = pname + "_" + stats(index)
@@ -31,6 +31,6 @@ case class HiveSQLDistSummaryWithParam[T](baseName:String, query:String, param:S
     
   }
   
-  def expand = stats.zipWithIndex.map{case (n,i) => SummaryStat[T](i,n)(stag) }.toList
+  def expand = stats.zipWithIndex.map{case (n,i) => SummaryStat[T](i,n, this)(stag) }.toList
 
 }
