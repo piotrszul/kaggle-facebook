@@ -101,27 +101,37 @@ class JDBCStorage(val ds:DataSource) {
         
         println("In TX:")
         val f:Feature = queryWithStmtCust(conn)(
-            _.prepareStatement("SELECT feature_id,key,type,0 FROM feature WHERE key=?"))(_.setString(1,fp.name))(Feature.fromNextRs _).orElse {
+            _.prepareStatement("SELECT feature_id,key,type,hash FROM feature WHERE key=?"))(_.setString(1,fp.name))(Feature.fromNextRs _).orElse {
           queryWithStmtCust(conn)(
-            _.prepareStatement("INSERT INTO feature(key,type) VALUES(?,?) RETURNING feature_id,key,type,0"))({rs => rs.setString(1,fp.name); rs.setString(2,fp.typeName)})(Feature.fromNextRs _)
+            _.prepareStatement("INSERT INTO feature(key,type,hash) VALUES(?,?,?) RETURNING feature_id,key,type,0"))({rs => rs.setString(1,fp.name); rs.setString(2,fp.typeName)})(Feature.fromNextRs _)
         }.get
 
-        System.out.println("ID: " + f.id)
-        doWithStmt(conn)(_.prepareStatement("DELETE FROM feature_" + fp.typeName + " WHERE feature_id=?")) { stmt =>
-           stmt.setLong(1,f.id)
-           stmt.executeUpdate()
-        }
         
-        
-        doWithStmt(conn)(_.prepareStatement("INSERT INTO feature_" + fp.typeName + "(feature_id,bidder_id,value) VALUES(?,?,?)")) {
-          stmt =>
-            fp.compute.foreach { t =>
-              stmt.setLong(1, f.id)
-              stmt.setString(2,t._1)
-              stmt.setObject(3,t._2)
-              stmt.addBatch()
-            }
-            stmt.executeBatch()
+        println("Processing feature: " + f)
+        if (f.hash == fp.hashCode()) {
+          println("Skipping evaluation: hash = " + fp.hashCode())
+        } else {
+          println("Evaluating: hash = " + fp.hashCode())
+          doWithStmt(conn)(_.prepareStatement("DELETE FROM feature_" + fp.typeName + " WHERE feature_id=?")) { stmt =>
+             stmt.setLong(1,f.id)
+             stmt.executeUpdate()
+          }
+          doWithStmt(conn)(_.prepareStatement("INSERT INTO feature_" + fp.typeName + "(feature_id,bidder_id,value) VALUES(?,?,?)")) {
+            stmt =>
+              fp.compute.foreach { t =>
+                stmt.setLong(1, f.id)
+                stmt.setString(2,t._1)
+                stmt.setObject(3,t._2)
+                stmt.addBatch()
+              }
+              stmt.executeBatch()
+          }
+          
+          doWithStmt(conn)(_.prepareStatement("UPDATE  feature SET hash=? WHERE feature_id = ?")) { stmt =>
+            stmt.setLong(1, f.hashCode())
+            stmt.setLong(2, f.id)
+            stmt.executeUpdate()
+          }
         }
       }
     }
