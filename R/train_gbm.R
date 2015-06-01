@@ -42,7 +42,7 @@ trControl <- trainControl(method="cv",
 
 model <- train(class ~ ., data = train_set, 
                  method="gbm",
-                 weights=10*(as.numeric(train_set$class)-1)+1,
+                 #weights=10*(as.numeric(train_set$class)-1)+1,
                  trControl = trControl,
                  metric = "ROC",
                  maximize = TRUE, 
