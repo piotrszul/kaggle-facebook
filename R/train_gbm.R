@@ -27,7 +27,7 @@ multiLogLoss <-function (data, lev = NULL, model = NULL) {
     c(ROC=ro$auc)
 }
 
-tuningGrid <- expand.grid(n.trees = c(500, 1000, 1500), interaction.depth = c(3,9,18), shrinkage = c(0.05, 0.01, 0.005))
+tuningGrid <- expand.grid(n.trees = c(1000, 1500), interaction.depth = c(5,9,14), shrinkage = c(0.01, 0.005,0.001))
 
 folds <- createFolds(train_set$class, 10, returnTrain=TRUE)
 trControl <- trainControl(method="cv",
@@ -42,6 +42,7 @@ trControl <- trainControl(method="cv",
 
 model <- train(class ~ ., data = train_set, 
                  method="gbm",
+                 weights=10*(as.numeric(train_set$class)-1)+1,
                  trControl = trControl,
                  metric = "ROC",
                  maximize = TRUE, 
