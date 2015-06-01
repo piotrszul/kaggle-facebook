@@ -8,11 +8,11 @@ case class HiveSQLDistSummaryWithParam[T](baseName:String, query:String, param:S
     
   val pname = baseName + "_" + param
   
-  val stats = List("avg", "max", "min", "dev")
+  val stats = List("avg", "max", "min", "dev", "median", "pc90")
   
   lazy val result = {
     val actualQuery = String.format(query,param)
-    val summaryQuery = String.format("SELECT key, avg(cnt) as avg, max(cnt) as max, min(cnt) as min, stddev_samp(cnt) as dev FROM(%s) as tmp GROUP BY key", actualQuery);
+    val summaryQuery = String.format("SELECT key, avg(cnt) as avg, max(cnt) as max, min(cnt) as min, stddev_samp(cnt) as dev, percentile(cnt,0.5) as median, percentile(cnt,0.9) as pc90 FROM(%s) as tmp GROUP BY key", actualQuery);
     println("Evaluating: "  + pname  + " with: " + summaryQuery)
     hc.sql(summaryQuery
         ).map(_.toArray).collect().toList
