@@ -128,7 +128,7 @@ class JDBCStorage(val ds:DataSource) {
           }
           
           doWithStmt(conn)(_.prepareStatement("UPDATE  feature SET hash=? WHERE feature_id = ?")) { stmt =>
-            stmt.setLong(1, f.hashCode())
+            stmt.setLong(1, fp.hashCode())
             stmt.setLong(2, f.id)
             stmt.executeUpdate()
           }
