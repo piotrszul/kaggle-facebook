@@ -7,6 +7,7 @@ import org.apache.spark.sql.hive.HiveContext
 object FeatureGenerator {
 
   val dims = List("country","device","auction", "merchandise", "ip", "url")
+  val dimsNoAuction = List("country","device","merchandise", "ip", "url")
   
   /**
    *  / 1000,000,000
@@ -32,6 +33,11 @@ object FeatureGenerator {
   def timebin(time:Long, binsPerSession:Int):Long = {
     retime(time)/(sessionUnits/binsPerSession)
   }
+
+  def timeslot(time:Long, binsPerSession:Int):Long = {
+    timebin(time,binsPerSession) % binsPerSession
+  }
+
   
   def main(args:Array[String]) = {
     
@@ -49,24 +55,21 @@ object FeatureGenerator {
         val sc: SparkContext = new SparkContext(new SparkConf().setAppName("Generator"));
         implicit val hc:HiveContext = new HiveContext(sc)
         hc.registerFunction("TIMEBIN", timebin _)
+        hc.registerFunction("TIMESLOT", timeslot _)
         
         val features:List[Iterable[FeatureProvider[_]]] = List(
             // time related features
             
             List("10","100","500").flatMap(
-              HiveSQLDistSummaryWithParam[Double]("bids_per_bin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", _).expand), 
+              HiveSQLDistSummaryWithParam[Double]("bids_per_aslot", "SELECT bidder_id as key,TIMESLOT(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMESLOT(time, %1$s)", _).expand), 
             List("10","100","500").flatMap(
-              HiveSQLDistSummaryWithParam[Double]("bids_per_active", "SELECT * FROM (SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as xx WHERE cnt >0", _).expand), 
-            //List("10", "100").map(HiveSQLFeatureProviderWithParam[Double]("per_bin_avg_bid",
-            //    "SELECT bidder_id,AVG(cnt) FROM"  + 
-            //    " (SELECT bidder_id,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)) as tmp  GROUP BY bidder_id",_)),     
-            // different    
+              HiveSQLDistSummaryWithParam[Double]("bids_per_abin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", _).expand), 
             dims.map(HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
-            dims.map(HiveSQLFeatureProviderWithParam[Double]("per_auction_avg",
+            dimsNoAuction.map(HiveSQLFeatureProviderWithParam[Double]("per_auction_avg",
                 "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(DISTINCT %s) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id",_)),
-            Some(HiveSQLFeatureProviderWithParam[Double]("per_auction_avg_bid",
-                "SELECT bidder_id,AVG(cnt) FROM (SELECT bidder_id,auction,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction) as tmp  GROUP BY bidder_id","")),
+            HiveSQLDistSummaryWithParam[Double]("bids_per_auction",
+                "SELECT bidder_id as key,auction as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction","").expand,
             Some(HiveSQLFeatureProvider("total_bid",
                 "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))                
         )
