@@ -18,7 +18,7 @@ test_data <- all_data[is.na(all_data$outcome),]
 train_data <- all_data[!is.na(all_data$outcome),]
 
 train_data[,"class" ] = as.factor(paste("c", train_data$outcome, sep='_'))
-train_set <- subset(train_data, select=-c(bidder_id,outcome, per_auction_avg_auction, bids_per_bin_500_dev, bids_per_bin_500_avg, bids_per_bin_500_min, bids_per_bin_500_median, bids_per_bin_500_max ))
+train_set <- subset(train_data, select=-c(bidder_id,outcome))
 
 set.seed(37)
 
