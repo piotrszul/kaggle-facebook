@@ -66,7 +66,7 @@ object FeatureGenerator {
               HiveSQLDistSummaryWithParam[Double]("bids_per_abin", "SELECT bidder_id as key,TIMEBIN(time, %1$s) as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,TIMEBIN(time, %1$s)", _).expand), 
             dims.map(HiveSQLFeatureProviderWithParam[Long]("total",
                 "SELECT bidder_id,COUNT(*) FROM (SELECT DISTINCT bidder_id,%s FROM bid_out) as dist GROUP BY bidder_id",_)),
-            dimsNoAuction.flatMap(HiveSQLDistSummaryWithParam[Double]("per_auction_avg",
+            dimsNoAuction.flatMap(HiveSQLDistSummaryWithParam[Double]("per_auction",
                 "SELECT bidder_id as key,auction as grp,COUNT(DISTINCT %s) AS cnt FROM bid_out GROUP BY bidder_id,auction",_).expand),
             HiveSQLDistSummaryWithParam[Double]("bids_per_auction",
                 "SELECT bidder_id as key,auction as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction","").expand,
