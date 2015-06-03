@@ -18,7 +18,7 @@ test_data <- all_data[is.na(all_data$outcome),]
 train_data <- all_data[!is.na(all_data$outcome),]
 
 train_data[,"class" ] = as.factor(paste("c", train_data$outcome, sep='_'))
-train_set <- subset(train_data, select=-c(bidder_id,outcome))
+train_set <- subset(train_data, select=-c(bidder_id,outcome, per_auction_merchandise_dev))
 
 set.seed(37)
 
@@ -27,7 +27,7 @@ multiLogLoss <-function (data, lev = NULL, model = NULL) {
     c(ROC=ro$auc)
 }
 
-tuningGrid <- expand.grid(n.trees = c(1000, 1500), interaction.depth = c(5,9,14), shrinkage = c(0.01, 0.005,0.001))
+tuningGrid <- expand.grid(n.trees = c(1000, 1500), interaction.depth = c(14,16,20), shrinkage = c(0.001,0.0005))
 
 folds <- createFolds(train_set$class, 10, returnTrain=TRUE)
 trControl <- trainControl(method="cv",
