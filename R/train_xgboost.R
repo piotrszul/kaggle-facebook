@@ -25,7 +25,7 @@ trainData <- xgb.DMatrix(trainMatrix, label = as.numeric(train_data$outcome))
 
 set.seed(137)
 params <- list(max.depth =12,  nthread=4,
-               eta = 0.001, objective = "binary:logistic", subsample=0.5, colsample_bytree=0.7, 
+               eta = 0.001, objective = "binary:logistic", subsample=0.5, colsample_bytree=0.5, 
                eval_metric ="auc", scale_pos_weight=10.0)
 
 nrounds <- 1500

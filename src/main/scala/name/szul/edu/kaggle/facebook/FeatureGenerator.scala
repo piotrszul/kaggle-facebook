@@ -71,7 +71,9 @@ object FeatureGenerator {
             HiveSQLDistSummaryWithParam[Double]("bids_per_auction",
                 "SELECT bidder_id as key,auction as grp,COUNT(*) AS cnt FROM bid_out GROUP BY bidder_id,auction","").expand,
             Some(HiveSQLFeatureProvider("total_bid",
-                "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))                
+                "SELECT bidder_id,COUNT(*) FROM bid_out GROUP BY bidder_id"))               
+            //, dimsNoAuction.flatMap(HiveSQLDistSummaryWithParam[String]("top",
+            //    "SELECT bidder_id as key,",_).expand)
         )
         features.flatten.foreach {store.save(_)}
         
