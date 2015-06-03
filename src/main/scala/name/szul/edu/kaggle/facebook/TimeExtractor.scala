@@ -57,8 +57,8 @@ object TimeExtractor {
         hc.registerFunction("TIMEBIN", timebin _)
         hc.registerFunction("TIMESLOT", timeslot _)
         
-       val result = hc.sql(String.format("SELECT bidder_id,outcome,TIMEBIN(time, %1$s) as timebin,COUNT(*) AS cnt FROM bid_out WHERE outcome IS NOT NULL GROUP BY bidder_id,outcome,TIMEBIN(time, %1$s)", "500"))
-       result.map(r => (r(0), r(1), r(2))).saveAsTextFile(args(0))
+       val result = hc.sql(String.format("SELECT bidder_id,outcome,TIMEBIN(time, %1$s) as timebin,COUNT(*) AS cnt FROM bid_out WHERE outcome IS NOT NULL GROUP BY bidder_id,outcome,TIMEBIN(time, %1$s) ORDER BY bidder_id, timebin", "500"))
+       result.map(r => r.toArray).map(_.toList.mkString(",")).coalesce(1,true).saveAsTextFile(args(0))
   }
   
   
