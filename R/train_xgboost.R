@@ -24,11 +24,11 @@ storage.mode(trainMatrix) <- "double"
 trainData <- xgb.DMatrix(trainMatrix, label = as.numeric(train_data$outcome))
 
 set.seed(137)
-params <- list(max.depth = 15,  nthread=4,
-               eta = 0.0005, objective = "binary:logistic", subsample=0.5, colsample_bytree=0.1, 
-               eval_metric ="auc", scale_pos_weight=20.0)
+params <- list(max.depth =12,  nthread=4,
+               eta = 0.001, objective = "binary:logistic", subsample=0.5, colsample_bytree=0.7, 
+               eval_metric ="auc", scale_pos_weight=10.0)
 
-nrounds <- 1000
+nrounds <- 1500
 nfold <- 10
 
 
